@@ -40,4 +40,4 @@ INSERT INTO productos (nombre, precio, stock, categoria_id) VALUES
     ('Silla ergonómica', 450.00, 15, 4);
 
 INSERT INTO usuarios (usuario, password, nombre) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrador');
+('admin', 'admin123', 'Administrador');
