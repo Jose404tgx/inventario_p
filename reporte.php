@@ -5,10 +5,9 @@ $hasta = $_GET['hasta'] ?? '';
 $data = [];
 
 if($desde && $hasta){
-    $data = $db->raw("productos", [
-        "fecha" => "gte.$desde",
-        "fecha" => "lte.$hasta"
-    ]);
+    $stmt = $db->pdo->prepare("SELECT * FROM productos WHERE fecha BETWEEN ? AND ? ORDER BY fecha DESC");
+    $stmt->execute([$desde, $hasta]);
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 

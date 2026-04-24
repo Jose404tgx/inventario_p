@@ -1,5 +1,6 @@
 <?php include "config/database.php"; 
-$productos = $db->select("productos", ["order" => "id.desc"]);
+
+$productos = $db->select("productos", [], "categorias");
 ?>
 
 <!DOCTYPE html>

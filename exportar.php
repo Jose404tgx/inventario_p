@@ -10,10 +10,9 @@ if (!$desde || !$hasta) {
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=reporte.csv');
 
-$productos = $db->select("productos", [
-    "fecha" => "gte.$desde",
-    "fecha" => "lte.$hasta"
-]);
+$stmt = $db->pdo->prepare("SELECT * FROM productos WHERE fecha BETWEEN ? AND ?");
+$stmt->execute([$desde, $hasta]);
+$productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $output = fopen("php://output", "w");
 fputcsv($output, ["ID", "Nombre", "Precio", "Stock", "Fecha"]);

@@ -1,7 +1,7 @@
 <?php include "config/database.php"; 
 
 $id = intval($_GET['id'] ?? 0);
-$producto = $db->select("productos", ["id" => "eq.$id"]);
+$producto = $db->select("productos", ["id" => $id]);
 $producto = $producto[0] ?? null;
 
 if (!$producto) {

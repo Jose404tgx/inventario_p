@@ -1,96 +1,81 @@
 <?php
 
-$supabase_url = "https://iayiolnypcezhxilybzm.supabase.co";
-$supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlheWlvbG55cGNlemh4aWx5YnptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5ODM3NTQsImV4cCI6MjA5MjU1OTc1NH0.dTms8VKyt6n3MlPmu5iHOVOna7MJFJtEPqdE3_3XloY";
-
 class Database {
-    public $url;
-    public $key;
+    private $host = "sql301.infinityfree.com";
+    private $db = "if0_XXXXXXXXX";  // Tu nombre de DB de InfinityFree
+    private $user = "if0_XXXXXXXXX"; // Tu usuario de InfinityFree
+    private $pass = "XXXXXXXXXX";    // Tu password de InfinityFree
+    
+    public $pdo;
     
     public function __construct() {
-        $this->url = "https://iayiolnypcezhxilybzm.supabase.co";
-        $this->key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlheWlvbG55cGNlemh4aWx5YnptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5ODM3NTQsImV4cCI6MjA5MjU1OTc1NH0.dTms8VKyt6n3MlPmu5iHOVOna7MJFJtEPqdE3_3XloY";
+        try {
+            $this->pdo = new PDO(
+                "mysql:host=$this->host;dbname=$this->db;charset=utf8",
+                $this->user,
+                $this->pass
+            );
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("Error: " . $e->getMessage());
+        }
     }
     
-    private function request($method, $endpoint, $body = null) {
-        $ch = curl_init();
-        $headers = [
-            'apikey: ' . $this->key,
-            'Authorization: Bearer ' . $this->key,
-            'Content-Type: application/json',
-            'Prefer: return=representation'
-        ];
+    public function select($table, $filters = [], $join = null) {
+        $sql = "SELECT * FROM $table";
         
-        $url = $this->url . $endpoint;
-        
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        if ($method === 'POST' || $method === 'PATCH' || $method === 'PUT') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-            if ($body) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-            }
-        } elseif ($method === 'DELETE') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        if ($join) {
+            $sql = "SELECT $table.*, $join.nombre AS categoria 
+                    FROM $table 
+                    LEFT JOIN $join ON $table.categoria_id = $join.id";
         }
         
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $params = [];
         
-        if ($httpCode >= 400) {
-            throw new Exception("Error HTTP $httpCode: $response");
-        }
-        
-        return json_decode($response, true) ?: [];
-    }
-    
-    public function select($table, $filters = []) {
-        $endpoint = "/rest/v1/$table";
         if (!empty($filters)) {
-            $params = [];
+            $conditions = [];
             foreach ($filters as $k => $v) {
-                $params[] = "$k=eq.$v";
+                $conditions[] = "$k = ?";
+                $params[] = $v;
             }
-            $endpoint .= "?" . implode("&", $params);
+            $sql .= " WHERE " . implode(" AND ", $conditions);
         }
-        return $this->request('GET', $endpoint);
+        
+        $sql .= " ORDER BY id DESC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     public function insert($table, $data) {
-        return $this->request('POST', "/rest/v1/$table", $data);
+        $keys = array_keys($data);
+        $fields = implode(", ", $keys);
+        $placeholders = implode(", ", array_fill(0, count($keys), "?"));
+        
+        $sql = "INSERT INTO $table ($fields) VALUES ($placeholders)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(array_values($data));
+        return $this->pdo->lastInsertId();
     }
     
     public function update($table, $id, $data) {
-        return $this->request('PATCH', "/rest/v1/$table?id=eq.$id", $data);
+        $sets = [];
+        foreach (array_keys($data) as $k) {
+            $sets[] = "$k = ?";
+        }
+        
+        $sql = "UPDATE $table SET " . implode(", ", $sets) . " WHERE id = ?";
+        $params = array_values($data);
+        $params[] = $id;
+        
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute($params);
     }
     
     public function delete($table, $id) {
-        return $this->request('DELETE', "/rest/v1/$table?id=eq.$id");
-    }
-    
-    public function rawQuery($sql) {
-        $endpoint = "/rest/v1/rpc/exec_sql?sql=" . urlencode($sql);
-        return $this->request('GET', $endpoint);
-    }
-    
-    public function raw($table, $filters = []) {
-        $endpoint = "/rest/v1/$table";
-        $params = [];
-        foreach ($filters as $k => $v) {
-            $parts = explode('.', $v);
-            if (count($parts) === 2) {
-                $params[] = "$k=.$parts[0].$parts[1]";
-            } else {
-                $params[] = "$k=eq.$v";
-            }
-        }
-        if (!empty($params)) {
-            $endpoint .= "?" . implode("&", $params);
-        }
-        return $this->request('GET', $endpoint);
+        $stmt = $this->pdo->prepare("DELETE FROM $table WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 }
 
