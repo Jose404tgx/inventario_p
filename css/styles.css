@@ -122,3 +122,25 @@ input, select {
     display: flex;
     gap: 10px;
 }
+
+/* STOCK INDICATOR */
+.stock-indicator {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+.stock-green {
+    background: #28a745;
+}
+
+.stock-yellow {
+    background: #ffc107;
+    color: #333;
+}
+
+.stock-red {
+    background: #dc3545;
+}

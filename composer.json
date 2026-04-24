@@ -1,7 +1,0 @@
-{
-    "name": "app/inventario",
-    "description": "Sistema de Inventario con Supabase",
-    "require": {
-        "php": ">=7.4"
-    }
-}

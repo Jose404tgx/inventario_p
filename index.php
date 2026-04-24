@@ -29,12 +29,15 @@ $productos = $db->select("productos", [], "categorias");
         </thead>
 
         <tbody>
-        <?php if($productos): foreach($productos as $p): ?>
+        <?php if($productos): foreach($productos as $p): 
+            $stock = (int)$p['stock'];
+            $stockClass = $stock >= 51 ? 'stock-green' : ($stock >= 11 ? 'stock-yellow' : 'stock-red');
+        ?>
             <tr>
                 <td><?= $p['id'] ?></td>
                 <td><?= htmlspecialchars($p['nombre']) ?></td>
                 <td>S/. <?= number_format($p['precio'], 2) ?></td>
-                <td><?= (int)$p['stock'] ?></td>
+                <td><span class="stock-indicator <?= $stockClass ?>"><?= $stock ?></span></td>
                 <td><?= htmlspecialchars($p['categoria'] ?? 'Sin categoría') ?></td>
                 <td><?= $p['fecha'] ?></td>
                 <td>
