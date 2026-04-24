@@ -1,4 +1,6 @@
-<?php include "config/database.php"; 
+<?php 
+include "config/auth.php"; 
+include "config/database.php"; 
 
 $productos = $db->select("productos", [], "categorias");
 ?>
@@ -18,6 +20,7 @@ $productos = $db->select("productos", [], "categorias");
     <div class="actions">
         <a href="agregar.php"><button class="btn">+ Agregar</button></a>
         <a href="reporte.php"><button class="btn">Reporte</button></a>
+        <a href="logout.php"><button class="btn btn-logout">Cerrar Sesión</button></a>
     </div>
 
     <table>

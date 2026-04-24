@@ -56,6 +56,14 @@ h1 {
     margin-bottom: 20px;
 }
 
+.btn-logout {
+    background: #dc3545;
+}
+
+.btn-logout:hover {
+    background: #c82333;
+}
+
 /* TABLA */
 table {
     width: 100%;

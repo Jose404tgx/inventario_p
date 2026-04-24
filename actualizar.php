@@ -1,4 +1,6 @@
-<?php include "config/database.php"; 
+<?php 
+include "config/auth.php"; 
+include "config/database.php"; 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id'] ?? 0);
